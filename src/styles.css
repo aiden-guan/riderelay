@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-bg: #f4f1ea;
+  --color-fg: #161614;
+  --color-muted: #6e6c64;
+  --color-subtle: #9a9890;
+  --color-surface: #fffdf8;
+  --color-surface-2: #ebe7dc;
+  --color-border: #e0dbd0;
+  --color-brand: #b5d63a;
+  --color-brand-ink: #1a2200;
+  --color-veo: #1f8a7a;
+  --color-danger: #b42318;
+  --color-success: #2f6f3e;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-card:
+    0 0 0 1px rgba(22, 22, 20, 0.06),
+    0 1px 2px -1px rgba(22, 22, 20, 0.05),
+    0 8px 24px -16px rgba(22, 22, 20, 0.12);
+  --shadow-card-hover:
+    0 0 0 1px rgba(22, 22, 20, 0.1),
+    0 1px 2px -1px rgba(22, 22, 20, 0.06),
+    0 12px 28px -16px rgba(22, 22, 20, 0.16);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-fg) 55%, transparent);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-brand) 70%, white);
+    color: var(--color-brand-ink);
+  }
+}
+
+@layer utilities {
+  .stagger-in > * {
+    animation: rise-in 400ms var(--ease-out) both;
+  }
+  .stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-in > *:nth-child(2) { animation-delay: 70ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 140ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 210ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 280ms; }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-code {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.reveal-code {
+  animation: reveal-code 400ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-in > *,
+  .reveal-code {
+    animation: none;
+  }
+}

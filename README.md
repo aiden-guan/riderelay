@@ -6,7 +6,7 @@ real visits to RideRelay—not by clicking your own listing.
 
 ![RideRelay branded social preview](public/og.jpg)
 
-## What it does
+## Features
 
 - Browse provider-specific boards and receive a referral link or code.
 - Submit and manage your own listing after signing in.

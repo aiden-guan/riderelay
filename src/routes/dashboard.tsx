@@ -146,12 +146,17 @@ function DashboardPage() {
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-sm font-medium text-muted">Codes</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-muted">Codes</h2>
+          <Button asChild size="sm" variant="secondary">
+            <Link to="/share">List another</Link>
+          </Button>
+        </div>
         <div className="mt-3 grid gap-3">
-          {providers.length === 0 && data.referrals.length === 0 ? (
+          {data.referrals.length === 0 ? (
             <EmptyState
               title="No codes yet"
-              body="List a Lime or Veo code, then invite riders to climb the board."
+              body="List a referral, then invite people to climb the board."
               action={
                 <Button asChild>
                   <Link to="/share">Add a code</Link>
@@ -159,29 +164,14 @@ function DashboardPage() {
               }
             />
           ) : (
-            providers.map((provider) => {
-              const ref = data.referrals.find((r) => r.providerSlug === provider.slug);
-              if (!ref) {
-                return (
-                  <article
-                    key={provider.id}
-                    className="flex flex-col gap-3 rounded-xl bg-surface p-4 shadow-card sm:flex-row sm:items-center"
-                  >
-                    <ProviderMark slug={provider.slug} iconKey={provider.iconKey} />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold">{provider.displayName}</h3>
-                      <p className="mt-1 text-sm text-muted">No {provider.displayName} listing yet.</p>
-                    </div>
-                    <Button asChild size="sm">
-                      <Link to="/share/$provider" params={{ provider: provider.slug }}>
-                        List my code
-                      </Link>
-                    </Button>
-                  </article>
-                );
-              }
-              return <ReferralRow key={ref.id} referral={ref} onChange={() => void load()} />;
-            })
+            data.referrals.map((ref) => (
+              <ReferralRow
+                key={ref.id}
+                referral={ref}
+                provider={providers.find((p) => p.slug === ref.providerSlug)}
+                onChange={() => void load()}
+              />
+            ))
           )}
         </div>
       </section>
@@ -218,9 +208,11 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function ReferralRow({
   referral,
+  provider,
   onChange,
 }: {
   referral: OwnReferral;
+  provider?: ProviderRecord;
   onChange: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -235,7 +227,12 @@ function ReferralRow({
   }
   return (
     <article className="flex flex-col gap-4 rounded-xl bg-surface p-4 shadow-card sm:flex-row sm:items-center">
-      <ProviderMark slug={referral.providerSlug} />
+      <ProviderMark
+        slug={referral.providerSlug}
+        name={referral.providerName}
+        accent={provider?.accent}
+        accentFg={provider?.accentFg}
+      />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-semibold">{referral.providerName}</h3>

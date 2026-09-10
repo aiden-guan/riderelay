@@ -41,7 +41,7 @@ export function ReferralCard({
           `Redeem in the ${referral.provider.displayName} app. Credits and eligibility come from the provider, not RideRelay.`}
       </p>
       {referral.provider.newUsersOnly ? (
-        <p className="mt-2 text-xs text-subtle">Usually for new riders.</p>
+        <p className="mt-2 text-xs text-subtle">Usually for new users.</p>
       ) : null}
     </article>
   );

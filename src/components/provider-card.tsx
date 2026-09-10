@@ -25,7 +25,12 @@ export function ProviderCard({
         paused && "opacity-70",
       )}
     >
-      <ProviderMark slug={provider.slug} iconKey={provider.iconKey} />
+      <ProviderMark
+        slug={provider.slug}
+        name={provider.displayName}
+        accent={provider.accent}
+        accentFg={provider.accentFg}
+      />
       <div className="min-w-0 flex-1">
         <p className="font-semibold tracking-tight">{provider.displayName}</p>
         <p className="truncate text-sm text-muted">

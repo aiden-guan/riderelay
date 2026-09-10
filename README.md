@@ -1,8 +1,9 @@
 # RideRelay
 
-RideRelay is a community referral board for Lime and Veo. List a referral link
-or code for free, help another rider get credit, and climb the board through
-real visits to RideRelay—not by clicking your own listing.
+RideRelay is a community referral board for campus life — rides, food, money,
+shopping, travel, tools, and phone plans. List a referral link or code for
+free, help someone get credit, and climb the board through real visits to
+RideRelay—not by clicking your own listing.
 
 ![RideRelay branded social preview](public/og.jpg)
 
@@ -92,7 +93,7 @@ npm run check:auth -- --dev-url http://127.0.0.1:8080
 The repository contains the referral-board implementation and its local
 verification commands. Deployment configuration, production database state,
 provider referral eligibility, and live external-provider behavior must be
-verified separately. Referral benefits and eligibility are controlled by Lime
-and Veo, not by RideRelay.
+verified separately. Referral benefits and eligibility are controlled by each
+provider, not by RideRelay.
 
 There is currently no license or contribution guide in this repository.

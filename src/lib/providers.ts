@@ -32,6 +32,8 @@ export type ProviderRecord = {
   unavailableMessage: string | null;
   shortHint: string | null;
   entryMode: "link" | "code";
+  category: string;
+  sortOrder: number;
 };
 
 export const DEFAULT_CODE_PATTERN = "^[A-Za-z0-9_-]{4,24}$";
@@ -67,8 +69,8 @@ export function parseJsonRecord(value: unknown): Record<string, unknown> {
 }
 
 export function joinEnglish(names: string[]): string {
-  if (names.length === 0) return "your ride apps";
-  if (names.length === 1) return names[0] ?? "your ride apps";
+  if (names.length === 0) return "your apps";
+  if (names.length === 1) return names[0] ?? "your apps";
   if (names.length === 2) return `${names[0]} and ${names[1]}`;
   return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }

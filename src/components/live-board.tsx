@@ -9,41 +9,66 @@ import { formatShares } from "@/lib/referrals/share";
 import { listingCopy } from "@/lib/referrals/board";
 import { formatRelative } from "@/lib/utils";
 import type { BoardListing, BoardSnapshot, OwnReferral, ShareActivity } from "@/lib/referrals/api-types";
+import type { ProviderRecord } from "@/lib/providers";
+import { CATEGORIES, matchesProviderQuery } from "@/lib/catalog";
 import { copyToClipboard } from "@/lib/client/clipboard";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/copy-button";
 import { ProviderMark } from "@/components/provider-mark";
+import { CategoryTabs, CompanyStrip } from "@/components/catalog-nav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export function LiveBoard({
   initial,
   activity: initialActivity,
+  providers,
   slug,
 }: {
   initial: BoardSnapshot;
   activity: ShareActivity[];
+  providers: ProviderRecord[];
   slug?: string;
 }) {
   const [board, setBoard] = useState(initial);
   const [activity, setActivity] = useState(initialActivity);
-  const [filter, setFilter] = useState<string>(slug ?? "lime");
+  const [query, setQuery] = useState("");
+  const start = providers.find((p) => p.slug === slug) ?? providers[0];
+  const [category, setCategory] = useState<string>(start?.category ?? "rides");
+  const [filter, setFilter] = useState<string>(start?.slug ?? "lime");
   const { user } = useCurrentUserState();
   const visitorId = useVisitorId();
   const [mine, setMine] = useState<OwnReferral | null>(null);
 
+  const catalog = useMemo(() => {
+    const q = query.trim();
+    return providers.filter((provider) => {
+      if (!matchesProviderQuery(provider, q)) return false;
+      if (q) return true;
+      return provider.category === category;
+    });
+  }, [providers, query, category]);
+
+  useEffect(() => {
+    if (catalog.some((p) => p.slug === filter)) return;
+    const next = catalog[0]?.slug;
+    if (next) setFilter(next);
+  }, [catalog, filter]);
+
+  const active = providers.find((p) => p.slug === filter);
   const listings = useMemo(
     () => board.listings.filter((row) => row.providerSlug === filter),
     [board.listings, filter],
   );
   const first = listings[0];
-  const providers = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const row of board.listings) seen.set(row.providerSlug, row.providerName);
-    if (!seen.has("lime")) seen.set("lime", "Lime");
-    if (!seen.has("veo")) seen.set("veo", "Veo");
-    return [...seen.entries()];
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of board.listings) {
+      map.set(row.providerSlug, (map.get(row.providerSlug) ?? 0) + 1);
+    }
+    return map;
   }, [board.listings]);
 
   async function refresh() {
@@ -74,28 +99,58 @@ export function LiveBoard({
   }, [user, filter, board.listingCount]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-8 sm:px-6">
-      <div className="flex flex-wrap gap-2 pt-2">
-        {providers.map(([key, name]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={cn(
-              "h-11 rounded-lg px-4 text-sm font-medium",
-              filter === key ? "bg-fg text-bg" : "bg-surface text-fg shadow-card",
-            )}
-          >
-            {name}
-          </button>
-        ))}
+    <div className="mx-auto w-full max-w-5xl px-4 pt-4 pb-8 sm:px-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1">
+          <CategoryTabs
+            value={category}
+            searching={Boolean(query.trim())}
+            onChange={(id) => {
+              setQuery("");
+              setCategory(id);
+              const firstIn = providers.find((p) => p.category === id);
+              if (firstIn) setFilter(firstIn.slug);
+            }}
+          />
+        </div>
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a company"
+          aria-label="Search services"
+          className="sm:max-w-64"
+        />
       </div>
+      {catalog.length === 0 ? (
+        <p className="mt-6 text-sm text-muted">No companies match that search.</p>
+      ) : (
+        <CompanyStrip
+          providers={catalog}
+          selected={filter}
+          counts={counts}
+          onSelect={(slug) => {
+            const provider = providers.find((p) => p.slug === slug);
+            setFilter(slug);
+            if (provider) setCategory(provider.category);
+          }}
+        />
+      )}
 
-      <p className="mt-6 font-mono text-xs text-subtle">
-        {listings.length === 0
-          ? "Empty board — list a code to stand first."
-          : `${listings.length} on the board · #1 has ${formatShares(first?.shareCount ?? 0)}`}
-      </p>
+      <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-medium tracking-wide text-subtle uppercase">
+            {active ? `${CATEGORIES.find((c) => c.id === active.category)?.label ?? "Board"} · ${active.displayName}` : "Board"}
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+            {active?.displayName ?? "Board"}
+          </h2>
+        </div>
+        <p className="font-mono text-xs text-subtle">
+          {listings.length === 0
+            ? "Empty — list a code to stand first."
+            : `${listings.length} on the board · #1 has ${formatShares(first?.shareCount ?? 0)}`}
+        </p>
+      </div>
 
       {first ? (
         <div className="mt-4 flex flex-col gap-3 rounded-xl bg-surface p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
@@ -158,7 +213,13 @@ export function LiveBoard({
           </li>
         ) : (
           listings.map((row) => (
-            <BoardRow key={row.id} row={row} mineId={mine?.id} visitorId={visitorId} />
+            <BoardRow
+              key={row.id}
+              row={row}
+              mineId={mine?.id}
+              visitorId={visitorId}
+              provider={active}
+            />
           ))
         )}
       </ol>
@@ -172,10 +233,12 @@ function BoardRow({
   row,
   mineId,
   visitorId,
+  provider,
 }: {
   row: BoardListing;
   mineId?: string;
   visitorId: string | null;
+  provider?: ProviderRecord;
 }) {
   async function pin() {
     if (!visitorId) return null;
@@ -207,7 +270,13 @@ function BoardRow({
       </p>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <ProviderMark slug={row.providerSlug} iconKey={row.iconKey} className="size-8" />
+          <ProviderMark
+            slug={row.providerSlug}
+            name={row.providerName}
+            accent={provider?.accent}
+            accentFg={provider?.accentFg}
+            className="size-8 text-xs"
+          />
           <button
             type="button"
             className="font-mono text-xl font-medium tracking-wide hover:underline"
@@ -268,7 +337,7 @@ function ActivityFeed({ items }: { items: ShareActivity[] }) {
         {items.map((item) => (
           <li key={item.id} className="flex items-baseline justify-between gap-4 py-3 text-sm">
             <span>
-              Someone arrived through {item.username ? `@${item.username}` : "a rider"}
+              Someone arrived through {item.username ? `@${item.username}` : "a member"}
             </span>
             <span className="shrink-0 font-mono text-xs text-subtle tabular-nums">
               {formatRelative(item.createdAt)}

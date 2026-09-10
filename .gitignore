@@ -20,3 +20,5 @@ AGENTS.md
 pglite.data
 *.log
 /tmp/
+
+attachments/

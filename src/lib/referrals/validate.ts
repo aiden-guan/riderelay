@@ -6,7 +6,7 @@ const DEFAULT_CODE_PATTERN = "^[A-Za-z0-9_-]{4,24}$";
 const BLOCKED_SCHEMES = new Set(["javascript", "data", "vbscript", "file"]);
 
 export function normalizeCode(raw: string): string {
-  return raw.trim().replace(/\s+/g, "");
+  return raw.trim().replace(/\s+/g, "").replace(/^\$/, "");
 }
 
 export function normalizeCodeKey(raw: string): string {
@@ -18,10 +18,10 @@ export function validateReferralCode(
   pattern = DEFAULT_CODE_PATTERN,
 ): Validation<string> {
   const code = normalizeCode(raw);
-  if (code.length < 4) {
+  if (code.length < 3) {
     return { ok: false, error: "That code is too short.", code: "code_short" };
   }
-  if (code.length > 24) {
+  if (code.length > 32) {
     return { ok: false, error: "That code is too long.", code: "code_long" };
   }
   if (/[<>'"\\]/.test(code) || /script/i.test(code)) {
@@ -32,23 +32,42 @@ export function validateReferralCode(
     if (!re.test(code)) {
       return {
         ok: false,
-        error: "Use the code from the provider app — letters and numbers only.",
+        error: "Use the code from the provider app.",
         code: "code_format",
       };
     }
   } catch {
-    if (!/^[A-Za-z0-9_-]{4,24}$/.test(code)) {
+    if (!/^[A-Za-z0-9_$-]{3,32}$/.test(code)) {
       return { ok: false, error: "That code does not look valid.", code: "code_format" };
     }
   }
   return { ok: true, value: code };
 }
 
+export function extractReferralUrl(raw: string, allowedHosts?: string[]): string | null {
+  const matches = raw.match(/https:\/\/[^\s<>"'\\]+/gi);
+  if (!matches) return null;
+  const allowed = allowedHosts?.map((h) => h.toLowerCase());
+  for (const candidate of matches) {
+    const cleaned = candidate.replace(/[),.;!?]+$/g, "");
+    try {
+      const parsed = new URL(cleaned);
+      if (parsed.protocol !== "https:") continue;
+      if (parsed.username || parsed.password) continue;
+      if (allowed?.length && !allowed.includes(parsed.hostname.toLowerCase())) continue;
+      return cleaned;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 export function validateReferralUrl(
   raw: string,
   allowedHosts: string[],
 ): Validation<string> {
-  const trimmed = raw.trim();
+  const trimmed = extractReferralUrl(raw, allowedHosts) ?? extractReferralUrl(raw) ?? raw.trim();
   if (!trimmed) {
     return { ok: false, error: "Add the referral link from the app.", code: "url_missing" };
   }
@@ -87,7 +106,7 @@ export function normalizeUrlKey(raw: string): string {
 }
 
 export function extractReferralToken(raw: string): string | null {
-  const trimmed = raw.trim();
+  const trimmed = extractReferralUrl(raw) ?? raw.trim();
   if (!trimmed) return null;
   try {
     const parsed = new URL(trimmed);
@@ -109,7 +128,7 @@ export function extractReferralToken(raw: string): string | null {
 }
 
 export function looksLikeUrl(raw: string): boolean {
-  return /^https?:\/\//i.test(raw.trim());
+  return extractReferralUrl(raw) != null || /^https?:\/\//i.test(raw.trim());
 }
 
 export function isSafeExternalUrl(raw: string, allowedHosts: string[]): boolean {

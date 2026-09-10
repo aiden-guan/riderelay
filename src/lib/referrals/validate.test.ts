@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   extractReferralToken,
+  extractReferralUrl,
   normalizeCodeKey,
   usernameSchemaError,
   validateReferralCode,
@@ -9,12 +10,20 @@ import {
 } from "./validate.ts";
 
 const limeHosts = ["li.me", "www.li.me", "lime.bike"];
+const limeShareCopy =
+  "Want a $5 ride credit with Lime? Use this link to download the app:\nhttps://lime.bike/referral_signin/RKTQDED6A27";
 
 describe("validateReferralCode", () => {
   it("accepts a typical provider code", () => {
     const result = validateReferralCode("  RideAda ");
     assert.equal(result.ok, true);
     if (result.ok) assert.equal(result.value, "RideAda");
+  });
+
+  it("strips a leading $ from cashtags", () => {
+    const result = validateReferralCode("$campus", "^[A-Za-z0-9_]{3,20}$");
+    assert.equal(result.ok, true);
+    if (result.ok) assert.equal(result.value, "campus");
   });
 
   it("rejects empty, tiny, huge, and unsafe codes", () => {
@@ -46,6 +55,18 @@ describe("validateReferralUrl", () => {
     }
   });
 
+  it("strips Lime share copy and keeps only the invite URL", () => {
+    const result = validateReferralUrl(limeShareCopy, limeHosts);
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.value, "https://lime.bike/referral_signin/RKTQDED6A27");
+    }
+    assert.equal(
+      extractReferralUrl(limeShareCopy, limeHosts),
+      "https://lime.bike/referral_signin/RKTQDED6A27",
+    );
+  });
+
   it("rejects malformed, http, foreign, and credentialed urls", () => {
     assert.equal(validateReferralUrl("not-a-url", limeHosts).ok, false);
     assert.equal(validateReferralUrl("http://www.li.me/refer/x", limeHosts).ok, false);
@@ -61,6 +82,10 @@ describe("extractReferralToken", () => {
       extractReferralToken("https://lime.bike/referral_signin/RIP3PXL4TC3"),
       "RIP3PXL4TC3",
     );
+  });
+
+  it("pulls the Lime path token from share copy", () => {
+    assert.equal(extractReferralToken(limeShareCopy), "RKTQDED6A27");
   });
 });
 

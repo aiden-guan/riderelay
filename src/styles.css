@@ -30,6 +30,8 @@
     0 0 0 1px rgba(22, 22, 20, 0.1),
     0 1px 2px -1px rgba(22, 22, 20, 0.06),
     0 12px 28px -16px rgba(22, 22, 20, 0.16);
+  --shadow-selected:
+    inset 0 0 0 2px var(--color-fg);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -86,6 +88,15 @@
   .stagger-in > *:nth-child(3) { animation-delay: 140ms; }
   .stagger-in > *:nth-child(4) { animation-delay: 210ms; }
   .stagger-in > *:nth-child(5) { animation-delay: 280ms; }
+
+  .scroll-strip {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .scroll-strip::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes rise-in {

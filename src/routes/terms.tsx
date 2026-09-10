@@ -12,7 +12,7 @@ function Terms() {
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
         <p>
           RideRelay is a community bulletin for sharing publicly available referral codes. We are not
-          Lime, Veo, or any other ride company.
+          affiliated with Uber, Lime, DoorDash, or any other company whose codes appear here.
         </p>
         <p>
           Referral credits, eligibility, and expiration are set by each provider. RideRelay does not

@@ -22,6 +22,7 @@ import { nextTrustState } from "@/lib/referrals/trust";
 import { RATE_LIMITS, TRUST, type ReferralStatus } from "@/lib/referrals/types";
 import {
   extractReferralToken,
+  extractReferralUrl,
   looksLikeUrl,
   normalizeCodeKey,
   normalizeUrlKey,
@@ -83,13 +84,15 @@ export function mapProvider(row: ProviderRow): ProviderRecord {
     unavailableMessage: row.unavailable_message ? String(row.unavailable_message) : null,
     shortHint,
     entryMode: meta.entry === "link" ? "link" : "code",
+    category: String(row.category ?? meta.category ?? "more"),
+    sortOrder: num(row.sort_order ?? 100),
   };
 }
 
 const PROVIDER_SELECT = `
   select p.id, p.slug, p.display_name, p.accent, p.accent_fg, p.icon_key, p.enabled,
          p.referral_instructions, p.terms_url, p.referral_program_url, p.signup_url,
-         p.allowed_hosts, p.code_pattern, p.markets, p.metadata,
+         p.allowed_hosts, p.code_pattern, p.markets, p.metadata, p.category, p.sort_order,
          r.program_active, r.new_users_only, r.geographic_notes, r.expiration_notes,
          r.code_format_hint, r.max_known_benefit, r.official_terms_url,
          r.last_verified_on::text as last_verified_on, r.unavailable_message
@@ -100,9 +103,9 @@ const PROVIDER_SELECT = `
 export async function loadProviders(includeDisabled = false): Promise<ProviderRecord[]> {
   const sql = await getSql();
   const rows = includeDisabled
-    ? await sql.query<ProviderRow>(`${PROVIDER_SELECT} order by p.display_name asc`)
+    ? await sql.query<ProviderRow>(`${PROVIDER_SELECT} order by p.sort_order asc, p.display_name asc`)
     : await sql.query<ProviderRow>(
-        `${PROVIDER_SELECT} where p.enabled = true order by p.display_name asc`,
+        `${PROVIDER_SELECT} where p.enabled = true order by p.sort_order asc, p.display_name asc`,
       );
   return rows.map(mapProvider);
 }
@@ -687,9 +690,15 @@ export async function submitReferral(input: {
   }
 
   let codeRaw = input.code.trim();
-  let urlRaw = input.referralUrl.trim();
+  let urlRaw =
+    extractReferralUrl(input.referralUrl, provider.allowedHosts) ??
+    extractReferralUrl(input.referralUrl) ??
+    input.referralUrl.trim();
   if (looksLikeUrl(codeRaw) && !urlRaw) {
-    urlRaw = codeRaw;
+    urlRaw =
+      extractReferralUrl(codeRaw, provider.allowedHosts) ??
+      extractReferralUrl(codeRaw) ??
+      codeRaw;
     codeRaw = "";
   }
   if (!codeRaw && urlRaw) {
@@ -973,7 +982,7 @@ export async function loadDashboard(userId: string, identity: {
 function summarizeEvent(type: string): string {
   switch (type) {
     case "referral_assigned":
-      return "A rider received one of your codes";
+      return "Someone received one of your codes";
     case "referral_copied":
       return "Someone copied a code";
     case "referral_opened":
@@ -1270,7 +1279,7 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
         createdAt: item.createdAt,
         referralUrl: String(row.referral_url ?? ""),
         featured: bool(row.featured),
-        usesLink: parseJsonRecord(row.metadata).entry === "link" || String(row.slug) === "lime",
+        usesLink: parseJsonRecord(row.metadata).entry === "link",
       });
     }
   }

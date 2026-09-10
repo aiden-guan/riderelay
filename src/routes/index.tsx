@@ -28,16 +28,16 @@ function Home() {
 
   return (
     <main className="flex-1">
-      <section className="mx-auto max-w-5xl px-4 pt-10 pb-4 sm:px-6 sm:pt-16">
+      <section className="mx-auto max-w-5xl px-4 pt-6 pb-2 sm:px-6 sm:pt-10">
         <p className="text-sm font-medium text-muted">Live referral board</p>
-        <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
           Rank is the share.
         </h1>
-        <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
-          List a Lime or Veo invite for free. Invite people to RideRelay. Rank is how many
-          actually show up — your own clicks don’t count.
+        <p className="mt-3 max-w-lg text-base leading-relaxed text-muted">
+          List any invite for free. Rank is how many people actually show up — your own
+          clicks don’t count.
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
             <Link to="/share">List my code</Link>
           </Button>
@@ -48,7 +48,7 @@ function Home() {
           </p>
         </div>
       </section>
-      <LiveBoard initial={board} activity={activity} slug={providers[0]?.slug ?? "lime"} />
+      <LiveBoard initial={board} activity={activity} providers={providers} slug={providers[0]?.slug} />
     </main>
   );
 }

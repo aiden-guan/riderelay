@@ -66,7 +66,7 @@ function Login() {
   return (
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
-      <p className="mt-2 text-muted">Needed to list a code and invite riders. Copying a referral stays open.</p>
+      <p className="mt-2 text-muted">Needed to list a code and invite people. Copying a referral stays open.</p>
 
       {!authEnabled ? (
         <p className="mt-8 text-sm text-muted">Sign-in is disabled.</p>

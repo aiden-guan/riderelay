@@ -5,6 +5,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { errorMessage } from "@/lib/app-error";
 import { track } from "@/lib/client/track";
 import { formatShares } from "@/lib/referrals/share";
+import { extractReferralUrl } from "@/lib/referrals/validate";
 import type { OwnReferral } from "@/lib/referrals/api-types";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -137,13 +138,27 @@ function ShareProviderPage() {
           <Input
             id="url"
             name="url"
-            type="url"
+            type={provider.entryMode === "link" ? "text" : "url"}
             inputMode="url"
+            autoComplete="off"
+            spellCheck={false}
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setUrl(extractReferralUrl(next, provider.allowedHosts) ?? next);
+            }}
+            onPaste={(e) => {
+              const text = e.clipboardData.getData("text");
+              const extracted = extractReferralUrl(text, provider.allowedHosts);
+              if (!extracted) return;
+              e.preventDefault();
+              setUrl(extracted);
+            }}
             placeholder={
               provider.entryMode === "link"
-                ? "https://lime.bike/referral_signin/…"
+                ? provider.allowedHosts[0]
+                  ? `https://${provider.allowedHosts[0]}/…`
+                  : "https://"
                 : provider.allowedHosts[0]
                   ? `https://${provider.allowedHosts[0]}/…`
                   : "https://"
@@ -152,7 +167,7 @@ function ShareProviderPage() {
           />
           <p className="text-xs text-subtle">
             {provider.entryMode === "link"
-              ? "Lime uses a referral link. Paste the invite URL from the app."
+              ? `Paste the invite from ${provider.displayName}. Extra wording is stripped automatically.`
               : `Official ${provider.displayName} link if you have one — otherwise the code is enough.`}
           </p>
         </div>

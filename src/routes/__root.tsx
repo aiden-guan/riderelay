@@ -30,7 +30,7 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "List a Lime or Veo code for free. Rank is real shares of RideRelay.",
+        content: "List any referral for free. Rank is real shares of RideRelay.",
       },
       { name: "theme-color", content: "#F4F1EA" },
       { name: "robots", content: "index, follow" },

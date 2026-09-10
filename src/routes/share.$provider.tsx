@@ -4,7 +4,7 @@ import { listProviders, submitReferralFn } from "@/lib/server/api";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { errorMessage } from "@/lib/app-error";
 import { track } from "@/lib/client/track";
-import { formatShares } from "@/lib/referrals/share";
+import { formatPoints } from "@/lib/referrals/share";
 import { extractReferralUrl } from "@/lib/referrals/validate";
 import type { OwnReferral } from "@/lib/referrals/api-types";
 import { PageShell } from "@/components/page-shell";
@@ -75,11 +75,11 @@ function ShareProviderPage() {
           </p>
           <dl className="mt-6 grid grid-cols-3 gap-3 text-sm">
             <Stat label="Rank" value={saved.rank ? `#${saved.rank}` : "—"} />
-            <Stat label="Shares" value={formatShares(saved.shareCount)} />
+            <Stat label="Boost" value={formatPoints(saved.boostPoints)} />
             <Stat label="Copies" value={String(saved.assignmentCount)} />
           </dl>
           <p className="mt-4 text-sm text-muted">
-            Rank is how many people actually use your RideRelay invite. Your own clicks don’t count.
+            Invite people to RideRelay for 10 points each, then put points on this listing to climb.
           </p>
         </div>
         <ShareInvite className="mt-6" />

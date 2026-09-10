@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/client/clipboard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { formatShares } from "@/lib/referrals/share";
+import { formatPoints, formatShares, POINTS_PER_REFERRAL } from "@/lib/referrals/share";
 
 const COPY = "Need a referral credit? Copy a community code on RideRelay.";
 
@@ -12,6 +12,7 @@ export function ShareInvite({ className }: { className?: string }) {
   const [busy, setBusy] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [shares, setShares] = useState(0);
+  const [unspent, setUnspent] = useState(0);
   const [copied, setCopied] = useState(false);
   const field = useRef<HTMLInputElement>(null);
 
@@ -20,6 +21,7 @@ export function ShareInvite({ className }: { className?: string }) {
       .then((dash) => {
         setToken(dash.profile.inviteToken);
         setShares(dash.profile.shareCount);
+        setUnspent(dash.profile.pointsUnspent);
       })
       .catch(() => undefined);
   }, []);
@@ -47,9 +49,12 @@ export function ShareInvite({ className }: { className?: string }) {
     <div className={cn("rounded-xl bg-surface p-5 shadow-card", className)}>
       <h2 className="font-semibold tracking-tight">Invite friends</h2>
       <p className="mt-2 text-sm text-muted">
-        Share this link. Rank is how many people actually use it — your own clicks don’t count.
+        Each person who actually arrives gives you {POINTS_PER_REFERRAL} points to put on a
+        listing. Your own clicks don’t count.
       </p>
-      <p className="mt-2 font-mono text-xs text-subtle">{formatShares(shares)}</p>
+      <p className="mt-2 font-mono text-xs text-subtle">
+        {formatShares(shares)} · {formatPoints(unspent)} unspent
+      </p>
       {url ? (
         <input
           ref={field}

@@ -2,8 +2,8 @@
 
 RideRelay is a community referral board for campus life — rides, food, money,
 shopping, travel, tools, and phone plans. List a referral link or code for
-free, help someone get credit, and climb the board through real visits to
-RideRelay—not by clicking your own listing.
+free. Each real visit through your RideRelay invite is worth 10 points you can
+put on a listing to climb that board.
 
 ![RideRelay branded social preview](public/og.jpg)
 

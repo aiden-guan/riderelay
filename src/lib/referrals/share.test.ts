@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { countsAsListingCopy, formatShares, shareBlockReason } from "./share.ts";
+import { countsAsListingCopy, canMoveBoost, formatPoints, formatShares, pointsEarned, shareBlockReason, unspentPoints } from "./share.ts";
 
 const visitor = "11111111-1111-1111-1111-111111111111";
 const other = "22222222-2222-2222-2222-222222222222";
@@ -86,9 +86,46 @@ describe("countsAsListingCopy", () => {
 });
 
 describe("formatShares", () => {
-  it("pluralizes", () => {
-    assert.equal(formatShares(0), "0 shares");
-    assert.equal(formatShares(1), "1 share");
-    assert.equal(formatShares(18), "18 shares");
+  it("pluralizes friends referred", () => {
+    assert.equal(formatShares(0), "0 friends");
+    assert.equal(formatShares(1), "1 friend");
+    assert.equal(formatShares(18), "18 friends");
+  });
+});
+
+describe("invite points", () => {
+  it("pays 10 points per credited friend", () => {
+    assert.equal(pointsEarned(0), 0);
+    assert.equal(pointsEarned(3), 30);
+  });
+
+  it("treats leftover points as unspent", () => {
+    assert.equal(unspentPoints(30, 12), 18);
+    assert.equal(unspentPoints(10, 10), 0);
+  });
+
+  it("lets you move points onto a listing you can afford", () => {
+    assert.equal(
+      canMoveBoost({ earned: 30, othersAllocated: 10, current: 3, delta: 7 }),
+      true,
+    );
+    assert.equal(
+      canMoveBoost({ earned: 30, othersAllocated: 10, current: 3, delta: 18 }),
+      false,
+    );
+    assert.equal(
+      canMoveBoost({ earned: 30, othersAllocated: 0, current: 5, delta: -2 }),
+      true,
+    );
+    assert.equal(
+      canMoveBoost({ earned: 30, othersAllocated: 0, current: 1, delta: -2 }),
+      false,
+    );
+  });
+
+  it("formats points", () => {
+    assert.equal(formatPoints(0), "0 pts");
+    assert.equal(formatPoints(1), "1 pt");
+    assert.equal(formatPoints(12), "12 pts");
   });
 });

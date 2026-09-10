@@ -19,9 +19,11 @@ function Terms() {
           promise that a code will work, or that you will earn anything by sharing one.
         </p>
         <p>
-          Don’t submit codes you don’t own. Listing a code is free. Rank is the number of people who
-          actually use your RideRelay invite — not clicks you make yourself. Don’t scrape, spam, or
-          farm shares. We may remove codes, pause services, or close accounts that abuse the pool.
+          Don’t submit codes you don’t own. Listing a code is free. One active code per
+          company. Rank is the points you put on that listing, earned by bringing real
+          people to RideRelay — not clicks you make yourself. Don’t scrape, spam, or
+          farm invites. We may remove codes, pause services, or close accounts that
+          abuse the pool.
         </p>
         <p>The service is provided as-is. If it breaks, we’ll try to fix it.</p>
       </div>

@@ -137,6 +137,25 @@ export const updateReferralFn = createServerFn({ method: "POST" })
     });
   });
 
+export const allocateBoostFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) =>
+    z
+      .object({
+        listingId: idSchema,
+        delta: z.number().int().refine((n) => n !== 0 && Math.abs(n) <= 10_000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { allocateBoost } = await import("./helpers.server");
+    return allocateBoost({
+      userId: context.userId,
+      listingId: data.listingId,
+      delta: data.delta,
+    });
+  });
+
 export const getDashboardFn = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {

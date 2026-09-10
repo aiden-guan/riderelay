@@ -13,7 +13,7 @@ function ShareIndex() {
   return (
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">List my code</h1>
-      <p className="mt-2 text-muted">Listing is free. Climb the board by inviting real people.</p>
+      <p className="mt-2 text-muted">Listing is free. One code per company. Spend invite points to climb.</p>
       <div className="mt-8">
         <ProviderPicker providers={providers} to="/share/$provider" action="Add your code" />
       </div>

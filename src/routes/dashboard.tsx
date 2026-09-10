@@ -1,10 +1,10 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getDashboardFn, listProviders, markNotificationReadFn, updateReferralFn } from "@/lib/server/api";
+import { getDashboardFn, listProviders, markNotificationReadFn, updateReferralFn, allocateBoostFn } from "@/lib/server/api";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { errorMessage } from "@/lib/app-error";
 import { track } from "@/lib/client/track";
-import { formatShares } from "@/lib/referrals/share";
+import { formatPoints } from "@/lib/referrals/share";
 import { formatRelative } from "@/lib/utils";
 import type { DashboardData, OwnReferral } from "@/lib/referrals/api-types";
 import { PageShell } from "@/components/page-shell";
@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ProviderMark } from "@/components/provider-mark";
 import { ShareInvite } from "@/components/share-invite";
 import type { ProviderRecord } from "@/lib/providers";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -99,12 +100,12 @@ function DashboardPage() {
       </div>
 
       <dl className="mt-8 grid grid-cols-3 gap-3">
-        <Metric label="Shares" value={data.profile.shareCount} />
-        <Metric label="Shown" value={data.stats.selections} />
-        <Metric label="Helped" value={data.stats.peopleHelped} />
+        <Metric label="Friends" value={data.profile.shareCount} />
+        <Metric label="Unspent" value={data.profile.pointsUnspent} />
+        <Metric label="On listings" value={data.profile.pointsAllocated} />
       </dl>
 
-      <ShareInvite className="mt-6" />
+      <ShareInvite className="mt-6" key={`${data.profile.shareCount}-${data.profile.pointsUnspent}`} />
 
       {data.notifications.filter((n) => !n.readAt).length > 0 ? (
         <section className="mt-10 space-y-3">
@@ -156,7 +157,7 @@ function DashboardPage() {
           {data.referrals.length === 0 ? (
             <EmptyState
               title="No codes yet"
-              body="List a referral, then invite people to climb the board."
+              body="List a referral, invite people, then spend points to boost that board."
               action={
                 <Button asChild>
                   <Link to="/share">Add a code</Link>
@@ -168,6 +169,7 @@ function DashboardPage() {
               <ReferralRow
                 key={ref.id}
                 referral={ref}
+                unspent={data.profile.pointsUnspent}
                 provider={providers.find((p) => p.slug === ref.providerSlug)}
                 onChange={() => void load()}
               />
@@ -209,10 +211,12 @@ function Metric({ label, value }: { label: string; value: number }) {
 function ReferralRow({
   referral,
   provider,
+  unspent,
   onChange,
 }: {
   referral: OwnReferral;
   provider?: ProviderRecord;
+  unspent: number;
   onChange: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -221,6 +225,17 @@ function ReferralRow({
     try {
       await updateReferralFn({ data: { id: referral.id, action } });
       onChange();
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function move(delta: number) {
+    setBusy(true);
+    try {
+      await allocateBoostFn({ data: { listingId: referral.id, delta } });
+      onChange();
+    } catch (err) {
+      toast.error(errorMessage(err, "Could not move those points."));
     } finally {
       setBusy(false);
     }
@@ -242,9 +257,39 @@ function ReferralRow({
           {referral.usesLink ? referral.referralUrl : referral.code}
         </p>
         <p className="mt-1 text-sm font-medium tabular-nums">
-          {referral.rank ? `#${referral.rank}` : "unranked"} · {formatShares(referral.shareCount)}
+          {referral.rank ? `#${referral.rank}` : "unranked"} · {formatPoints(referral.boostPoints)} on this listing
         </p>
-        <p className="mt-1 text-xs text-subtle">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy || referral.boostPoints < 1}
+            onClick={() => void move(-1)}
+          >
+            −1
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy || unspent < 1}
+            onClick={() => void move(1)}
+          >
+            +1
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy || unspent < 10}
+            onClick={() => void move(10)}
+          >
+            +10
+          </Button>
+          <span className="text-xs text-subtle">{formatPoints(unspent)} left to spend</span>
+        </div>
+        <p className="mt-2 text-xs text-subtle">
           {referral.assignmentCount} copies · {referral.successfulReports} worked · Last{" "}
           {formatRelative(referral.lastAssignedAt)}
         </p>

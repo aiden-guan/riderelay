@@ -3,6 +3,8 @@ export const SHARE = {
   minVisitorIdLength: 16,
 } as const;
 
+export const POINTS_PER_REFERRAL = 10;
+
 export type ShareAttempt = {
   inviterUserId: string;
   inviterVisitorId: string | null;
@@ -48,9 +50,34 @@ export function countsAsListingCopy(input: {
   return true;
 }
 
+export function pointsEarned(shareCount: number): number {
+  return Math.max(0, Math.round(shareCount)) * POINTS_PER_REFERRAL;
+}
+
+export function unspentPoints(earned: number, allocated: number): number {
+  return Math.max(0, Math.round(earned) - Math.max(0, Math.round(allocated)));
+}
+
+export function canMoveBoost(input: {
+  earned: number;
+  othersAllocated: number;
+  current: number;
+  delta: number;
+}): boolean {
+  if (!Number.isInteger(input.delta) || input.delta === 0) return false;
+  const next = input.current + input.delta;
+  if (next < 0) return false;
+  return next + input.othersAllocated <= input.earned;
+}
+
 export function formatShares(n: number): string {
   const v = Math.max(0, Math.round(n));
-  return v === 1 ? "1 share" : `${v} shares`;
+  return v === 1 ? "1 friend" : `${v} friends`;
+}
+
+export function formatPoints(n: number): string {
+  const v = Math.max(0, Math.round(n));
+  return v === 1 ? "1 pt" : `${v} pts`;
 }
 
 export function formatListings(n: number): string {

@@ -5,7 +5,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useVisitorId } from "@/lib/client/visitor";
 import { readViaToken } from "@/lib/client/via";
 import { track } from "@/lib/client/track";
-import { formatShares } from "@/lib/referrals/share";
+import { formatPoints } from "@/lib/referrals/share";
 import { listingCopy } from "@/lib/referrals/board";
 import { formatRelative } from "@/lib/utils";
 import type { BoardListing, BoardSnapshot, OwnReferral, ShareActivity } from "@/lib/referrals/api-types";
@@ -148,7 +148,7 @@ export function LiveBoard({
         <p className="font-mono text-xs text-subtle">
           {listings.length === 0
             ? "Empty — list a code to stand first."
-            : `${listings.length} on the board · #1 has ${formatShares(first?.shareCount ?? 0)}`}
+            : `${listings.length} on the board · #1 has ${formatPoints(first?.boostPoints ?? 0)}`}
         </p>
       </div>
 
@@ -179,7 +179,7 @@ export function LiveBoard({
             >
               {first.code}
             </button>
-            <p className="mt-1 text-sm text-muted">{formatShares(first.shareCount)}</p>
+            <p className="mt-1 text-sm text-muted">{formatPoints(first.boostPoints)}</p>
             {first.featured ? (
               <p className="mt-1 text-xs text-subtle">Using this invite tips the creator.</p>
             ) : null}
@@ -288,7 +288,7 @@ function BoardRow({
           {row.featured ? <Badge>Creator</Badge> : null}
         </div>
         <p className="mt-2 text-sm text-muted">
-          {formatShares(row.shareCount)}
+          {formatPoints(row.boostPoints)}
           {row.username && !row.featured ? ` · @${row.username}` : ""}
           {row.worked ? ` · ${row.worked} worked` : ""}
         </p>

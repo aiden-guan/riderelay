@@ -3,7 +3,7 @@ import { parseHostList, parseJsonRecord, type ProviderRecord } from "@/lib/provi
 import { pickCandidate, filterEligible } from "@/lib/referrals/allocator";
 import type { AllocationCandidate } from "@/lib/referrals/types";
 import { rankListings } from "@/lib/referrals/board";
-import { countsAsListingCopy, newInviteToken, SHARE, shareBlockReason } from "@/lib/referrals/share";
+import { POINTS_PER_REFERRAL, SHARE, countsAsListingCopy, newInviteToken, pointsEarned, shareBlockReason, unspentPoints } from "@/lib/referrals/share";
 import { assertAdmin, assertOwns } from "@/lib/referrals/authz";
 import type {
   ActivityItem,
@@ -739,18 +739,19 @@ export async function submitReferral(input: {
     throw new AppError("duplicate", "That code is already in the rotation.");
   }
 
-  const previous = await sql<{ id: string; bid_cents: number }>`
-    select id, bid_cents from referral_codes
+  const previous = await sql<{ id: string; bid_cents: number; boost_points: number }>`
+    select id, bid_cents, coalesce(boost_points, 0) as boost_points from referral_codes
     where user_id = ${input.userId}
       and provider_id = ${provider.id}
       and status in ('active', 'paused', 'quarantined')
     limit 1
   `;
   const carried = num(previous[0]?.bid_cents);
+  const carriedBoost = num(previous[0]?.boost_points);
 
   await sql`
     update referral_codes
-    set status = 'archived', updated_at = now()
+    set status = 'archived', boost_points = 0, updated_at = now()
     where user_id = ${input.userId}
       and provider_id = ${provider.id}
       and status in ('active', 'paused', 'quarantined')
@@ -761,11 +762,11 @@ export async function submitReferral(input: {
     await sql`
       insert into referral_codes (
         id, user_id, provider_id, code, code_normalized, referral_url, url_normalized, status,
-        bid_cents, last_bid_at
+        bid_cents, last_bid_at, boost_points
       ) values (
         ${id}, ${input.userId}, ${provider.id}, ${codeResult.value}, ${codeKey},
         ${urlResult.value}, ${urlKey}, 'active',
-        ${carried}, ${carried > 0 ? new Date().toISOString() : null}
+        ${carried}, ${carried > 0 ? new Date().toISOString() : null}, ${carriedBoost}
       )
     `;
   } catch (err) {
@@ -797,7 +798,7 @@ async function loadOwnReferral(sql: Sql, id: string, userId: string): Promise<Ow
     select c.id, c.provider_id, p.slug, p.display_name, c.code, c.referral_url, c.status,
            c.assignment_count, c.successful_reports, c.failed_reports,
            c.created_at::text as created_at, c.last_assigned_at::text as last_assigned_at,
-           c.bid_cents, c.last_bid_at::text as last_bid_at,
+           coalesce(c.boost_points, 0) as boost_points,
            coalesce(c.featured, false) as featured, p.metadata
     from referral_codes c
     join providers p on p.id = c.provider_id
@@ -818,10 +819,10 @@ async function loadOwnReferral(sql: Sql, id: string, userId: string): Promise<Ow
     failedReports: num(row.failed_reports),
     createdAt: iso(row.created_at) ?? "",
     lastAssignedAt: iso(row.last_assigned_at),
-    shareCount: 0,
+    boostPoints: num(row.boost_points),
     rank: null,
     featured: bool(row.featured),
-    usesLink: parseJsonRecord(row.metadata).entry === "link" || String(row.slug) === "lime",
+    usesLink: parseJsonRecord(row.metadata).entry === "link",
   };
 }
 
@@ -858,7 +859,9 @@ export async function updateOwnReferral(input: {
   } else {
     await sql`
       update referral_codes
-      set status = ${status}, updated_at = now()
+      set status = ${status},
+          boost_points = case when ${status} = 'archived' then 0 else boost_points end,
+          updated_at = now()
       where id = ${input.id} and user_id = ${input.userId}
     `;
   }
@@ -872,6 +875,61 @@ export async function updateOwnReferral(input: {
     referralCodeId: mine.id,
   });
   return mine;
+}
+
+export async function allocateBoost(input: {
+  userId: string;
+  listingId: string;
+  delta: number;
+}): Promise<OwnReferral> {
+  if (!Number.isInteger(input.delta) || input.delta === 0) {
+    throw new AppError("points", "Choose how many points to move.");
+  }
+  if (Math.abs(input.delta) > 10_000) {
+    throw new AppError("points", "That’s too many points at once.");
+  }
+  const sql = await getSql();
+  const moved = await sql<{ boost_points: number }>`
+    with budget as (
+      select
+        p.share_count * ${POINTS_PER_REFERRAL} as earned,
+        coalesce((
+          select sum(c2.boost_points)
+          from referral_codes c2
+          where c2.user_id = p.user_id
+            and c2.status <> 'archived'
+            and c2.id <> ${input.listingId}
+        ), 0) as others
+      from profiles p
+      where p.user_id = ${input.userId}
+    )
+    update referral_codes c
+    set boost_points = c.boost_points + ${input.delta}, updated_at = now()
+    from budget b
+    where c.id = ${input.listingId}
+      and c.user_id = ${input.userId}
+      and c.status <> 'archived'
+      and c.boost_points + ${input.delta} >= 0
+      and c.boost_points + ${input.delta} + b.others <= b.earned
+    returning c.boost_points
+  `;
+  if (!moved[0]) {
+    throw new AppError(
+      "points",
+      input.delta > 0
+        ? "Not enough unspent points. Invite more people to RideRelay."
+        : "This listing doesn’t have that many points on it.",
+    );
+  }
+  await writeEvent({
+    eventType: "boost_allocated",
+    userId: input.userId,
+    referralCodeId: input.listingId,
+    metadata: { delta: input.delta, boost: moved[0].boost_points },
+  });
+  const mine = await loadOwnReferral(sql, input.listingId, input.userId);
+  if (!mine) throw new AppError("not_found", "Listing not found.");
+  return attachRank(sql, mine);
 }
 
 function contributorLevel(peopleHelped: number, shared: number): string {
@@ -892,7 +950,7 @@ export async function loadDashboard(userId: string, identity: {
     select c.id, c.provider_id, p.slug, p.display_name, c.code, c.referral_url, c.status,
            c.assignment_count, c.successful_reports, c.failed_reports,
            c.created_at::text as created_at, c.last_assigned_at::text as last_assigned_at,
-           c.bid_cents, c.last_bid_at::text as last_bid_at,
+           coalesce(c.boost_points, 0) as boost_points,
            coalesce(c.featured, false) as featured, p.metadata
     from referral_codes c
     join providers p on p.id = c.provider_id
@@ -912,10 +970,10 @@ export async function loadDashboard(userId: string, identity: {
     failedReports: num(row.failed_reports),
     createdAt: iso(row.created_at) ?? "",
     lastAssignedAt: iso(row.last_assigned_at),
-    shareCount: 0,
+    boostPoints: num(row.boost_points),
     rank: null,
     featured: bool(row.featured),
-    usesLink: parseJsonRecord(row.metadata).entry === "link" || String(row.slug) === "lime",
+    usesLink: parseJsonRecord(row.metadata).entry === "link",
   }));
   referrals = await Promise.all(referrals.map((r) => attachRank(sql, r)));
 
@@ -956,6 +1014,9 @@ export async function loadDashboard(userId: string, identity: {
   const selections = referrals.reduce((sum, r) => sum + r.assignmentCount, 0);
   const peopleHelped = referrals.reduce((sum, r) => sum + r.successfulReports, 0);
 
+  const allocated = referrals.reduce((sum, r) => sum + r.boostPoints, 0);
+  const earned = pointsEarned(num(profile.share_count));
+
   return {
     profile: {
       userId: profile.user_id,
@@ -965,6 +1026,9 @@ export async function loadDashboard(userId: string, identity: {
       role: profile.role,
       createdAt: iso(profile.created_at) ?? "",
       shareCount: num(profile.share_count),
+      pointsEarned: earned,
+      pointsUnspent: unspentPoints(earned, allocated),
+      pointsAllocated: allocated,
       inviteToken: profile.invite_token ?? null,
     },
     referrals,
@@ -999,6 +1063,8 @@ function summarizeEvent(type: string): string {
       return "You confirmed a referral still works";
     case "referral_archive":
       return "You removed a referral";
+    case "boost_allocated":
+      return "You moved points on a listing";
     default:
       return type.replace(/_/g, " ");
   }
@@ -1191,23 +1257,22 @@ function escapeHtml(value: string): string {
 }
 
 async function attachRank(sql: Sql, listing: OwnReferral): Promise<OwnReferral> {
-  const rows = await sql<{ id: string; share_count: number; created_at: string; featured: boolean }>`
-    select c.id, coalesce(pr.share_count, 0) as share_count, c.created_at::text as created_at,
+  const rows = await sql<{ id: string; boost_points: number; created_at: string; featured: boolean }>`
+    select c.id, coalesce(c.boost_points, 0) as boost_points, c.created_at::text as created_at,
            coalesce(c.featured, false) as featured
     from referral_codes c
-    left join profiles pr on pr.user_id = c.user_id
     where c.provider_id = ${listing.providerId} and c.status = 'active'
   `;
   const ranked = rankListings(
     rows.map((r) => ({
       id: r.id,
-      shareCount: num(r.share_count),
+      score: num(r.boost_points),
       createdAt: r.created_at,
       featured: Boolean(r.featured),
     })),
   );
   const mine = ranked.find((r) => r.id === listing.id);
-  return { ...listing, shareCount: mine?.shareCount ?? listing.shareCount, rank: mine?.rank ?? null };
+  return { ...listing, boostPoints: mine?.score ?? listing.boostPoints, rank: mine?.rank ?? null };
 }
 
 export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
@@ -1217,8 +1282,9 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
         select c.id, c.code, c.referral_url, c.user_id, c.provider_id, c.assignment_count,
                c.successful_reports, c.created_at::text as created_at,
                coalesce(c.featured, false) as featured,
+               coalesce(c.boost_points, 0) as boost_points,
                p.slug, p.display_name, p.icon_key, p.signup_url, p.referral_instructions, p.metadata,
-               r.new_users_only, pr.username, coalesce(pr.share_count, 0) as share_count
+               r.new_users_only, pr.username
         from referral_codes c
         join providers p on p.id = c.provider_id
         left join provider_rules r on r.provider_id = p.id
@@ -1229,8 +1295,9 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
         select c.id, c.code, c.referral_url, c.user_id, c.provider_id, c.assignment_count,
                c.successful_reports, c.created_at::text as created_at,
                coalesce(c.featured, false) as featured,
+               coalesce(c.boost_points, 0) as boost_points,
                p.slug, p.display_name, p.icon_key, p.signup_url, p.referral_instructions, p.metadata,
-               r.new_users_only, pr.username, coalesce(pr.share_count, 0) as share_count
+               r.new_users_only, pr.username
         from referral_codes c
         join providers p on p.id = c.provider_id
         left join provider_rules r on r.provider_id = p.id
@@ -1251,7 +1318,7 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
     const ranked = rankListings(
       group.map((row) => ({
         id: String(row.id),
-        shareCount: num(row.share_count),
+        score: num(row.boost_points),
         createdAt: iso(row.created_at) ?? "",
         featured: bool(row.featured),
         row,
@@ -1273,7 +1340,7 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
         referralInstructions: String(row.referral_instructions ?? ""),
         signupUrl: row.signup_url ? String(row.signup_url) : null,
         username: row.username ? String(row.username) : null,
-        shareCount: item.shareCount,
+        boostPoints: item.score,
         copies: num(row.assignment_count),
         worked: num(row.successful_reports),
         createdAt: item.createdAt,
@@ -1290,12 +1357,12 @@ export async function loadBoard(slug?: string | null): Promise<BoardSnapshot> {
   });
 
   const uniqueSharers = new Set(listings.map((l) => l.username ?? l.id));
-  const totalShares = listings.reduce((sum, l) => sum + l.shareCount, 0);
+  const totalBoost = listings.reduce((sum, l) => sum + l.boostPoints, 0);
 
   return {
     providerSlug: slug ?? null,
     listings,
-    totalShares: uniqueSharers.size === listings.length ? totalShares : totalShares,
+    totalBoost: uniqueSharers.size === listings.length ? totalBoost : totalBoost,
     listingCount: listings.length,
   };
 }

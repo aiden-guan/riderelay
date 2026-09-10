@@ -27,7 +27,7 @@ function GetProviderPage() {
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">Copy a code</h1>
         <p className="mt-2 text-muted">
-          Rank is real shares of RideRelay. The ones at the top brought more people here.
+          Rank is points spent on a listing. Invite people to RideRelay, then boost the code you want on top.
         </p>
       </PageShell>
       <LiveBoard initial={board} activity={activity} providers={providers} slug={slug} />

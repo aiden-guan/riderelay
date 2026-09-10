@@ -43,7 +43,7 @@ export type OwnReferral = {
   failedReports: number;
   createdAt: string;
   lastAssignedAt: string | null;
-  shareCount: number;
+  boostPoints: number;
   rank: number | null;
   featured: boolean;
   usesLink: boolean;
@@ -62,7 +62,7 @@ export type BoardListing = {
   referralInstructions: string;
   signupUrl: string | null;
   username: string | null;
-  shareCount: number;
+  boostPoints: number;
   copies: number;
   worked: number;
   createdAt: string;
@@ -74,7 +74,7 @@ export type BoardListing = {
 export type BoardSnapshot = {
   providerSlug: string | null;
   listings: BoardListing[];
-  totalShares: number;
+  totalBoost: number;
   listingCount: number;
 };
 
@@ -111,6 +111,9 @@ export type DashboardData = {
     role: string;
     createdAt: string;
     shareCount: number;
+    pointsEarned: number;
+    pointsUnspent: number;
+    pointsAllocated: number;
     inviteToken: string | null;
   };
   referrals: OwnReferral[];

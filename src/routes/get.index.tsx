@@ -13,7 +13,7 @@ function GetPage() {
   return (
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">Copy a referral</h1>
-      <p className="mt-2 text-muted">Pick a board. Rank is how many people that member actually brought here.</p>
+      <p className="mt-2 text-muted">Pick a board. Rank is points spent on that company’s listing.</p>
       <div className="mt-8">
         <ProviderPicker providers={providers} to="/get/$provider" action="Get a code" />
       </div>

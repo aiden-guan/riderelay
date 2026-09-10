@@ -1,6 +1,6 @@
 export type Rankable = {
   id: string;
-  shareCount: number;
+  score: number;
   createdAt: string;
   featured?: boolean;
 };
@@ -14,7 +14,7 @@ export function rankListings<T extends Rankable>(listings: T[]): RankedListing<T
     const aFeat = Boolean(a.featured);
     const bFeat = Boolean(b.featured);
     if (aFeat !== bFeat) return aFeat ? -1 : 1;
-    if (b.shareCount !== a.shareCount) return b.shareCount - a.shareCount;
+    if (b.score !== a.score) return b.score - a.score;
     const aTime = Date.parse(a.createdAt);
     const bTime = Date.parse(b.createdAt);
     if (Number.isNaN(aTime) || Number.isNaN(bTime)) return a.id.localeCompare(b.id);

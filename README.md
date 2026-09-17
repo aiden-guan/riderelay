@@ -1,54 +1,82 @@
 # RewardRelay
 
-RewardRelay is a community referral board for campus life — rides, food, money,
-shopping, travel, tools, and phone plans. List a referral link or code for
-free. Each real visit through your RewardRelay invite is worth 10 points you can
-put on a listing to climb that board.
+Invite friends. Spend points. Climb a referral board.
 
 ![RewardRelay branded social preview](public/og.jpg)
 
-## Features
+RewardRelay is a campus referral board for rides, food, money, shopping,
+travel, campus tools, and phone plans. Listing is free. Rank on a company
+board is the boost you put on that listing — not self-clicks.
 
-- Browse provider-specific boards and receive a referral link or code.
-- Submit and manage your own listing after signing in.
-- Route visitors through referral assignments and record copy, open, and
-  outcome activity.
-- Count shares from other visitors while excluding the inviter's account,
-  device, and own listing.
-- Use rate limits and outcome reports to adjust listing confidence and
-  quarantine referrals that repeatedly fail.
+The product name is RewardRelay. This repository is still
+[`aiden-guan/riderelay`](https://github.com/aiden-guan/riderelay).
 
-## How it works
+## Ranking
 
-```text
-Browser
-  -> TanStack Router loaders and server functions
-  -> referral allocation, trust, and auth helpers
-  -> SQL data layer
-       -> embedded PGLite locally
-       -> Postgres-compatible DATABASE_URL when configured
-```
+1. Sign in and list one referral link or code per company.
+2. Share your RewardRelay invite. Each credited friend is worth **10 points**.
+3. Spend those points on a listing. That listing’s boost is its rank.
+4. Featured pins sit above score. Older listings break remaining ties.
 
-Provider boards and referral state live in SQL migrations under `migrations/`.
-The local path uses embedded PGLite when `DATABASE_URL` is unset; setting that
-variable switches the data layer to Postgres through `pg`. Better Auth handles
-the signed-in listing and dashboard flows.
+A share only counts when it is a different visitor who arrived through your
+invite token and then signed up or copied a listing. Claims from your own
+account, device, or listing are ignored. Rate limits and outcome reports
+adjust listing confidence and quarantine referrals that repeatedly fail.
 
-## Getting started
+Replacing a listing carries its boost. Archiving one zeros the boost.
 
-Prerequisites: Node.js 22+ and npm.
+## Boards
+
+Categories and companies are separate in the UI.
+
+| Category | Companies |
+| --- | --- |
+| Rides | Lime, Veo, Uber, Lyft, Bird |
+| Food | DoorDash, Uber Eats, Grubhub, Instacart, Gopuff, Chipotle, HelloFresh |
+| Money | Cash App, Venmo, Robinhood, SoFi, Chime, Coinbase, PayPal |
+| Shopping | Amazon, Rakuten |
+| Travel | Airbnb, Booking.com |
+| Campus | Chegg, Grammarly, Canva, Notion, Dropbox |
+| Phone | Mint Mobile, Visible |
+
+Company marks are original letter lockups, not official logos. Names appear
+under nominative fair use. Referral benefits and eligibility are controlled
+by each provider, not by RewardRelay.
+
+## Stack
+
+- TanStack Start, Vite, React, Tailwind
+- Better Auth for email and password, plus Google and X when configured
+- SQL migrations under `migrations/`
+- Embedded PGLite when `DATABASE_URL` is unset; Postgres through `pg` when it is set
+
+## Repository map
+
+- `src/routes/` — public boards, referral flows, account pages, and legal pages
+- `src/components/` — board, referral, navigation, and form UI
+- `src/lib/referrals/` — allocation, share attribution, points, and trust
+- `src/lib/auth/` — Better Auth integration and session gates
+- `src/lib/server/` — server functions and database-backed application logic
+- `migrations/` — schema, catalog, points, and the RewardRelay rename
+- `scripts/` — migrations, environment handling, and checks
+- `public/og.jpg` and `public/x-banner.jpg` — social preview and X banner
+
+## Develop
+
+Node.js 22+ and npm.
 
 ```bash
 npm install
-npm run dev
+npm test
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Open [http://localhost:8080](http://localhost:8080). The development server
-uses port `8080` by design.
+`npm run build` runs the Vite build, then the migration script. Without
+`DATABASE_URL`, the migration step skips the remote database.
 
-Without `DATABASE_URL`, the app starts with an embedded PGLite database. To
-use a persistent Postgres-compatible database, set the variable in your shell
-before starting the app:
+To persist data in Postgres instead of the embedded store:
 
 ```bash
 DATABASE_URL="postgres://user:password@host/database" npm run dev
@@ -56,44 +84,8 @@ DATABASE_URL="postgres://user:password@host/database" npm run dev
 
 Never commit a real connection string or other credentials.
 
-## Verify the repository
+## Status
 
-```bash
-npm test
-npm run typecheck
-npm run lint
-npm run build
-```
-
-`npm run build` runs the Vite build and then the migration script. If
-`DATABASE_URL` is not set, the migration step reports that it is skipping the
-remote database.
-
-When a development server is already running, the auth invariant check can
-compare the server's resolved auth mode with the build configuration:
-
-```bash
-npm run check:auth -- --dev-url http://127.0.0.1:8080
-```
-
-## Repository map
-
-- `src/routes/` — public boards, referral flows, account pages, and legal pages.
-- `src/components/` — board, referral, navigation, and form UI.
-- `src/lib/referrals/` — allocation, share attribution, validation, and trust
-  scoring.
-- `src/lib/auth/` — Better Auth integration and session gates.
-- `src/lib/server/` — server functions and database-backed application logic.
-- `migrations/` — application schema and seed data.
-- `scripts/` — migrations, environment handling, auth checks, and browser-smoke
-  helpers.
-
-## Status and limits
-
-The repository contains the referral-board implementation and its local
-verification commands. Deployment configuration, production database state,
-provider referral eligibility, and live external-provider behavior must be
-verified separately. Referral benefits and eligibility are controlled by each
-provider, not by RewardRelay.
-
-There is currently no license or contribution guide in this repository.
+This repository is the RewardRelay board. There is no license or contribution
+guide. Deployment, production database state, and live provider programs must
+be verified separately from the code.

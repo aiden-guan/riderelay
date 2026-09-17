@@ -332,7 +332,7 @@ select id, true, true,
   'Availability and amounts vary by city and account.',
   'Codes can expire or stop working if a member leaves the program.',
   null, null, terms_url, '2026-09-09',
-  display_name || ' referrals are paused in RideRelay right now.'
+  display_name || ' referrals are paused in RewardRelay right now.'
 from providers
 where id not in (select provider_id from provider_rules)
 on conflict (provider_id) do nothing;

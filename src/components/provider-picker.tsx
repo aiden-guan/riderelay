@@ -56,7 +56,7 @@ export function ProviderPicker({
           onChange={setCategory}
         />
       </div>
-      <div className="mt-8 space-y-8">
+      <div key={query.trim() ? "search" : category} className="mt-8 space-y-8 swap-in">
         {grouped.length === 0 ? (
           <p className="text-sm text-muted">No services match that search.</p>
         ) : (

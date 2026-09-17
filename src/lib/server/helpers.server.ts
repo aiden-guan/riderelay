@@ -336,7 +336,7 @@ export async function assignReferral(input: {
 }): Promise<AssignResult> {
   const provider = await loadProviderBySlug(input.slug);
   if (!provider) {
-    throw new AppError("not_found", "That service is not on RideRelay.");
+    throw new AppError("not_found", "That service is not on RewardRelay.");
   }
   const summary = { slug: provider.slug, displayName: provider.displayName };
   if (!provider.enabled || !provider.programActive) {
@@ -681,7 +681,7 @@ export async function submitReferral(input: {
     image: input.image,
   });
   const provider = await loadProviderBySlug(input.slug);
-  if (!provider) throw new AppError("not_found", "That service is not on RideRelay.");
+  if (!provider) throw new AppError("not_found", "That service is not on RewardRelay.");
   if (!provider.programActive) {
     throw new AppError(
       "unavailable",
@@ -917,7 +917,7 @@ export async function allocateBoost(input: {
     throw new AppError(
       "points",
       input.delta > 0
-        ? "Not enough unspent points. Invite more people to RideRelay."
+        ? "Not enough unspent points. Invite more people to RewardRelay."
         : "This listing doesn’t have that many points on it.",
     );
   }
@@ -1240,7 +1240,7 @@ export async function handleGoRedirect(assignmentId: string): Promise<Response> 
     const message = err instanceof AppError ? err.message : "That referral is no longer available.";
     const status = err instanceof AppError ? err.status : 404;
     return new Response(
-      `<!doctype html><meta charset="utf-8"><title>RideRelay</title><body style="font-family:system-ui;padding:48px;background:#F4F1EA;color:#161614"><h1>Can't open that link</h1><p>${escapeHtml(message)}</p><p><a href="/get">Get another referral</a></p></body>`,
+      `<!doctype html><meta charset="utf-8"><title>RewardRelay</title><body style="font-family:system-ui;padding:48px;background:#F4F1EA;color:#161614"><h1>Can't open that link</h1><p>${escapeHtml(message)}</p><p><a href="/get">Get another referral</a></p></body>`,
       { status, headers: { "content-type": "text/html; charset=utf-8" } },
     );
   }

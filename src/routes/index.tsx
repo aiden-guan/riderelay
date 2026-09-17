@@ -28,13 +28,13 @@ function Home() {
 
   return (
     <main className="flex-1">
-      <section className="mx-auto max-w-5xl px-4 pt-6 pb-2 sm:px-6 sm:pt-10">
+      <section className="stagger-in mx-auto max-w-5xl px-4 pt-6 pb-2 sm:px-6 sm:pt-10">
         <p className="text-sm font-medium text-muted">Live referral board</p>
         <h1 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
           Rank is the boost.
         </h1>
         <p className="mt-3 max-w-lg text-base leading-relaxed text-muted">
-          List any invite for free. Bring people to RideRelay for 10 points each,
+          List any invite for free. Bring people to RewardRelay for 10 points each,
           then put those points on a listing to climb that board.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">

@@ -43,7 +43,20 @@ export function CopyButton({
   return (
     <div className={cn("flex w-full flex-col gap-2 sm:w-auto", className)}>
       <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => void copy()}>
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+        <span className="relative inline-flex size-4">
+          <Check
+            className={cn(
+              "absolute inset-0 size-4 transition-[opacity,transform,filter] duration-fast ease-out",
+              copied ? "scale-100 opacity-100 blur-none" : "scale-[0.25] opacity-0 blur-[4px]",
+            )}
+          />
+          <Copy
+            className={cn(
+              "size-4 transition-[opacity,transform,filter] duration-fast ease-out",
+              copied ? "scale-[0.25] opacity-0 blur-[4px]" : "scale-100 opacity-100 blur-none",
+            )}
+          />
+        </span>
         {copied ? "Copied" : label}
       </Button>
       {manual ? (

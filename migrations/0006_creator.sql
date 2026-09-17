@@ -24,7 +24,7 @@ insert into profiles (user_id, username, display_name, role, invite_token, share
 values (
   'creator-riderelay',
   'creator',
-  'RideRelay',
+  'RewardRelay',
   'member',
   'creator000001',
   0

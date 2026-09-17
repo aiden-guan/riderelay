@@ -34,6 +34,9 @@
     inset 0 0 0 2px var(--color-fg);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-slow: 400ms;
 }
 
 @layer base {
@@ -81,28 +84,72 @@
 
 @layer utilities {
   .stagger-in > * {
-    animation: rise-in 400ms var(--ease-out) both;
+    animation: rise-in var(--duration-slow) var(--ease-out) backwards;
   }
   .stagger-in > *:nth-child(1) { animation-delay: 0ms; }
-  .stagger-in > *:nth-child(2) { animation-delay: 70ms; }
-  .stagger-in > *:nth-child(3) { animation-delay: 140ms; }
-  .stagger-in > *:nth-child(4) { animation-delay: 210ms; }
-  .stagger-in > *:nth-child(5) { animation-delay: 280ms; }
+  .stagger-in > *:nth-child(2) { animation-delay: 40ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 80ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 120ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 160ms; }
 
   .scroll-strip {
+    display: flex;
+    flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
+    overscroll-behavior-y: none;
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
   .scroll-strip::-webkit-scrollbar {
     display: none;
+  }
+
+  .tab-ink {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 9999px;
+    background: var(--color-fg);
+    pointer-events: none;
+  }
+  .tab-ink.is-ready {
+    transition-property: transform, width, opacity;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .swap-in {
+    animation: swap-in var(--duration-fast) var(--ease-out) backwards;
+  }
+
+  .duration-quick {
+    --tw-duration: var(--duration-quick);
+    transition-duration: var(--duration-quick);
+  }
+  .duration-fast {
+    --tw-duration: var(--duration-fast);
+    transition-duration: var(--duration-fast);
   }
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -124,12 +171,16 @@
 }
 
 .reveal-code {
-  animation: reveal-code 400ms var(--ease-out) both;
+  animation: reveal-code var(--duration-slow) var(--ease-out) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stagger-in > *,
-  .reveal-code {
+  .reveal-code,
+  .swap-in {
     animation: none;
+  }
+  .tab-ink.is-ready {
+    transition: none;
   }
 }

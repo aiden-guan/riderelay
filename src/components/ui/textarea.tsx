@@ -10,6 +10,7 @@ export function Textarea({
       className={cn(
         "min-h-24 w-full rounded-lg bg-surface px-3 py-2.5 text-base text-fg shadow-card",
         "placeholder:text-subtle",
+        "transition-[box-shadow] duration-quick ease-out",
         "focus-visible:outline-none focus-visible:shadow-card-hover",
         className,
       )}

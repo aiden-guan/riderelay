@@ -1,4 +1,4 @@
--- RideRelay core schema. Idempotent. Auth tables live in 0001_auth.sql.
+-- RewardRelay core schema. Idempotent. Auth tables live in 0001_auth.sql.
 
 create table if not exists providers (
   id text primary key,

@@ -1,11 +1,11 @@
-# RideRelay
+# RewardRelay
 
-RideRelay is a community referral board for campus life — rides, food, money,
+RewardRelay is a community referral board for campus life — rides, food, money,
 shopping, travel, tools, and phone plans. List a referral link or code for
-free. Each real visit through your RideRelay invite is worth 10 points you can
+free. Each real visit through your RewardRelay invite is worth 10 points you can
 put on a listing to climb that board.
 
-![RideRelay branded social preview](public/og.jpg)
+![RewardRelay branded social preview](public/og.jpg)
 
 ## Features
 
@@ -94,6 +94,6 @@ The repository contains the referral-board implementation and its local
 verification commands. Deployment configuration, production database state,
 provider referral eligibility, and live external-provider behavior must be
 verified separately. Referral benefits and eligibility are controlled by each
-provider, not by RideRelay.
+provider, not by RewardRelay.
 
 There is currently no license or contribution guide in this repository.

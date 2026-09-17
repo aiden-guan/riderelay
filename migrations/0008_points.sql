@@ -1,4 +1,4 @@
--- Invite points: each credited RideRelay referral is worth 10 points.
+-- Invite points: each credited RewardRelay referral is worth 10 points.
 -- Rank a listing by boost_points allocated to it. Unspent points sit as
 -- share_count * 10 minus the sum of a member's active boosts.
 

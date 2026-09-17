@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatPoints, formatShares, POINTS_PER_REFERRAL } from "@/lib/referrals/share";
 
-const COPY = "Need a referral credit? Copy a community code on RideRelay.";
+const COPY = "Need a referral credit? Copy a community code on RewardRelay.";
 
 export function ShareInvite({ className }: { className?: string }) {
   const [busy, setBusy] = useState(false);

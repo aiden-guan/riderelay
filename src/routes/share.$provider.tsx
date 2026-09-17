@@ -79,7 +79,7 @@ function ShareProviderPage() {
             <Stat label="Copies" value={String(saved.assignmentCount)} />
           </dl>
           <p className="mt-4 text-sm text-muted">
-            Invite people to RideRelay for 10 points each, then put points on this listing to climb.
+            Invite people to RewardRelay for 10 points each, then put points on this listing to climb.
           </p>
         </div>
         <ShareInvite className="mt-6" />

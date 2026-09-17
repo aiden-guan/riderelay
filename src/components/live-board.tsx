@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadActivityFn, loadBoardFn, myListingFn, pinReferralFn } from "@/lib/server/api";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useVisitorId } from "@/lib/client/visitor";
@@ -41,6 +41,11 @@ export function LiveBoard({
   const { user } = useCurrentUserState();
   const visitorId = useVisitorId();
   const [mine, setMine] = useState<OwnReferral | null>(null);
+  const skipSwap = useRef(true);
+
+  useEffect(() => {
+    skipSwap.current = false;
+  }, []);
 
   const catalog = useMemo(() => {
     const q = query.trim();
@@ -125,6 +130,7 @@ export function LiveBoard({
         <p className="mt-6 text-sm text-muted">No companies match that search.</p>
       ) : (
         <CompanyStrip
+          key={query.trim() ? "search" : category}
           providers={catalog}
           selected={filter}
           counts={counts}
@@ -136,7 +142,8 @@ export function LiveBoard({
         />
       )}
 
-      <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div key={filter} className={cn("mt-8", !skipSwap.current && "swap-in")}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium tracking-wide text-subtle uppercase">
             {active ? `${CATEGORIES.find((c) => c.id === active.category)?.label ?? "Board"} · ${active.displayName}` : "Board"}
@@ -223,6 +230,7 @@ export function LiveBoard({
           ))
         )}
       </ol>
+      </div>
 
       <ActivityFeed items={activity} />
     </div>

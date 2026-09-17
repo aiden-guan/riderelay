@@ -23,7 +23,7 @@ export function AccountChip() {
     <div className="flex items-center gap-2">
       <Link
         to="/dashboard"
-        className="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 hover:bg-fg/5"
+        className="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 transition-[background-color] duration-quick ease-out hover:bg-fg/5"
       >
         {user.profileImageUrl ? (
           <img
@@ -42,7 +42,7 @@ export function AccountChip() {
         <button
           type="button"
           disabled={signingOut}
-          className="text-sm text-muted underline-offset-4 hover:text-fg hover:underline disabled:cursor-wait"
+          className="text-sm text-muted underline-offset-4 transition-[color] duration-quick ease-out hover:text-fg hover:underline disabled:cursor-wait"
           onClick={() => {
             setSigningOut(true);
             void signOut("/").catch(() => setSigningOut(false));

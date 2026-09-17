@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { InviteBeacon } from "@/components/invite-beacon";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "RideRelay";
+const APP_NAME = "RewardRelay";
 
 const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
   const { getSessionUser } = await import("@/lib/auth/verify.server");

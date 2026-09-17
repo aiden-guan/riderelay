@@ -20,7 +20,7 @@ function Guidelines() {
           else’s code as your own.
         </p>
         <p>
-          Follow each provider’s own rules. RideRelay is a mailbox, not a workaround.
+          Follow each provider’s own rules. RewardRelay is a mailbox, not a workaround.
         </p>
       </div>
     </PageShell>

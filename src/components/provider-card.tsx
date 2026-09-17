@@ -20,8 +20,8 @@ export function ProviderCard({
       params={{ provider: provider.slug }}
       className={cn(
         "group flex items-center gap-4 rounded-xl bg-surface p-4 shadow-card",
-        "transition-[transform,box-shadow] duration-150 ease-out",
-        "hover:shadow-card-hover active:scale-[0.98]",
+        "transition-[transform,box-shadow] duration-quick ease-out",
+        "hover:-translate-y-px hover:shadow-card-hover active:scale-[0.96]",
         paused && "opacity-70",
       )}
     >
@@ -39,7 +39,7 @@ export function ProviderCard({
             : (provider.shortHint ?? action)}
         </p>
       </div>
-      <ArrowUpRight className="size-4 text-subtle transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      <ArrowUpRight className="size-4 text-subtle transition-transform duration-quick ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
     </Link>
   );
 }

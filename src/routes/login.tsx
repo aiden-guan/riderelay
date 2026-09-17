@@ -47,7 +47,7 @@ function Login() {
         const { error: err } = await authClient.signUp.email({
           email,
           password,
-          name: name.trim() || email.split("@")[0] || "Rider",
+          name: name.trim() || email.split("@")[0] || "Member",
         });
         if (err) throw new Error(err.message ?? "Could not create account.");
       } else {
@@ -91,7 +91,6 @@ function Login() {
 
       {authEnabled ? (
         <form className="mt-10 space-y-4" onSubmit={(e) => void onEmail(e)}>
-          <p className="text-sm font-medium text-muted">Email</p>
           {mode === "up" ? (
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>

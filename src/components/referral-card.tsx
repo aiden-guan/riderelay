@@ -38,7 +38,7 @@ export function ReferralCard({
       </div>
       <p className="mt-5 text-sm leading-relaxed text-muted">
         {referral.provider.shortHint ??
-          `Redeem in the ${referral.provider.displayName} app. Credits and eligibility come from the provider, not RideRelay.`}
+          `Redeem in the ${referral.provider.displayName} app. Credits and eligibility come from the provider, not RewardRelay.`}
       </p>
       {referral.provider.newUsersOnly ? (
         <p className="mt-2 text-xs text-subtle">Usually for new users.</p>

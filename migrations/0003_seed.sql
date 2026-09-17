@@ -56,7 +56,7 @@ insert into provider_rules (
   null,
   'https://help.li.me/hc/en-us/articles/115004746987-Does-Lime-have-a-referral-program',
   '2026-09-01',
-  'Lime referrals are paused in RideRelay right now.'
+  'Lime referrals are paused in RewardRelay right now.'
 ),
 (
   'veo',
@@ -68,6 +68,6 @@ insert into provider_rules (
   null,
   'https://veoride.zendesk.com/hc/en-us/articles/360050365231-Promo-Codes',
   '2026-09-01',
-  'Veo referrals are paused in RideRelay right now.'
+  'Veo referrals are paused in RewardRelay right now.'
 )
 on conflict (provider_id) do nothing;

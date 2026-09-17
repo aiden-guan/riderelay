@@ -7,6 +7,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
       className={cn(
         "h-11 w-full rounded-lg bg-surface px-3 text-base text-fg shadow-card",
         "placeholder:text-subtle",
+        "transition-[box-shadow] duration-quick ease-out",
         "focus-visible:outline-none focus-visible:shadow-card-hover",
         "disabled:opacity-50",
         className,

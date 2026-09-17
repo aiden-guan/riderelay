@@ -144,6 +144,7 @@ export function usernameSchemaError(raw: string): string | null {
   }
   const reserved = new Set([
     "admin",
+    "rewardrelay",
     "riderelay",
     "lime",
     "veo",

@@ -11,17 +11,17 @@ function Terms() {
       <h1 className="text-3xl font-semibold tracking-tight">Terms</h1>
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
         <p>
-          RideRelay is a community bulletin for sharing publicly available referral codes. We are not
+          RewardRelay is a community bulletin for sharing publicly available referral codes. We are not
           affiliated with Uber, Lime, DoorDash, or any other company whose codes appear here.
         </p>
         <p>
-          Referral credits, eligibility, and expiration are set by each provider. RideRelay does not
+          Referral credits, eligibility, and expiration are set by each provider. RewardRelay does not
           promise that a code will work, or that you will earn anything by sharing one.
         </p>
         <p>
           Don’t submit codes you don’t own. Listing a code is free. One active code per
           company. Rank is the points you put on that listing, earned by bringing real
-          people to RideRelay — not clicks you make yourself. Don’t scrape, spam, or
+          people to RewardRelay — not clicks you make yourself. Don’t scrape, spam, or
           farm invites. We may remove codes, pause services, or close accounts that
           abuse the pool.
         </p>
